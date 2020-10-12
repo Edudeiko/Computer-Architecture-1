@@ -7,12 +7,35 @@ class CPU:
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        #pass
+        self.reg = [0]*8
+        self.reg[7] = 0xF4
+        self.pc = 0
+        self.ram = [None] * 256
+
+
+        #command Translations
+        self.SAVE = 0b10000010
+        self.PRINT_REG = 0b01000111
+        self.HALT = 0b00000001
+        self.MULT = Ob10100010
+        self.PUSH = Ob010000101
+        self.POP = 0b01000110
+
+    def ram_read(self, address):
+        return bin(self.ram[address])
+
+    def ram_write(self, value, address):
+        self.ram[address] = value
 
     def load(self):
-        """Load a program into memory."""
-
+        """
+        Load a program into memory.
+        """
+    
         address = 0
+
+   
 
         # For now, we've just hardcoded a program:
 
@@ -62,4 +85,81 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        #pass
+
+        self.pc = 0
+        running = True 
+        while running:
+            command = self.ram[self.pc]
+
+            #Save
+            if command == self.SAVE:
+                reg = self.ram[self.pc + 1]
+                num_to_save = self.ram[self.pc + 2]
+                self.reg[reg] = num_to_save
+                self.pc += (command >> 6)
+
+            #PRINT_REG
+            if command == self.PRINT_REG:
+                reg_index = self.ram[self.pc + 1]
+                print(self.reg[reg_index])
+                self.pc += (command >> 6)
+
+            #MULT
+            if command == self.MULT:
+                first_reg = self.ram[self.pc + 1]
+                sec_reg = self.ram[self.pc + 2]
+                self.re[first_reg] = self.reg[first_reg] * self.reg[sec_reg]
+                self.pc += (command >> 6)
+
+            #PUSH
+            if command == self.PUSH:
+                #decrement the stack pointer
+                self.reg[7] -= 1
+
+                #get the register number
+                reg = self.ram[self.pc + 1]
+
+                #get a value from the given register
+                value = self.reg[reg]
+
+                #put the value at the stack pointer address
+                sp = self.reg[7]
+                self.ram[sp] = value
+
+                #Increment PC
+                self.pc += (command >> 6)
+            
+            #POP
+            if command == self.POP:
+                #get the stack pointer (where do we look?)
+                sp = self.reg[7]
+
+                #get register number to put value in
+                reg = self.ram[self.pc + 1]
+
+                #use stack pointer toget the value 
+                value = self.ram[sp]
+
+                #put the value into the given register
+                self.reg[reg]  = value
+
+                #increment our stack pointer
+                self.reg[7] += 1
+
+                #increment our program counter
+                self.pc += (command >> 6)
+
+            #HALT
+            if command == self.HALT:
+                running = False
+
+            self.pc += 1
+
+
+if __name__ == "__main__":
+    cpu = CPU()
+    cpu.load_from_file()
+    cpu.run()
+            
+
