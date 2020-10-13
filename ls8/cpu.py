@@ -2,11 +2,13 @@
 
 import sys
 
+#step 0 inventory files
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
+        #consructor step 1
         #pass
         self.reg = [0]*8
         self.reg[7] = 0xF4
@@ -18,13 +20,15 @@ class CPU:
         self.SAVE = 0b10000010
         self.PRINT_REG = 0b01000111
         self.HALT = 0b00000001
-        self.MULT = Ob10100010
-        self.PUSH = Ob010000101
+        self.MULT = 0b10100010
+        self.PUSH = 0b010000101
         self.POP = 0b01000110
 
+    #step 2
     def ram_read(self, address):
         return bin(self.ram[address])
 
+    #step 2
     def ram_write(self, value, address):
         self.ram[address] = value
 
@@ -36,9 +40,21 @@ class CPU:
         address = 0
 
    
-
+        program = [
+            #From print8.ls8
+            #self.SAVE, #LDI RO,8
+            0b10000010, #LDI RO, 8
+            0b00000000,
+            0b00001000,
+            0b01000111, #PRN RO
+            #0b00010000, 16
+            #self.PRINT_REG, #PRN RO
+            0b00000000,
+            #self.HALT, #HLT
+            0b00000001, #HLT
+        ]    
         # For now, we've just hardcoded a program:
-
+        '''
         program = [
             # From print8.ls8
             0b10000010, # LDI R0,8
@@ -48,10 +64,36 @@ class CPU:
             0b00000000,
             0b00000001, # HLT
         ]
+        '''
 
         for instruction in program:
             self.ram[address] = instruction
             address += 1
+    
+    def load_from_file(self):
+        file_name = sys.argv[1]
+        try:
+            address = 0
+            with open(file_name) as file:
+                for line in file:
+                    split_line = line.split('#')[0]
+                    command = split_line.strip()
+
+                    if command == '':
+                        continue
+                    instruction = int(command, 2)
+                    self.ram[address] = instruction
+
+                    address += 1
+
+        except FileNotFoundError:
+            print(f'{sys.argv[0]}: {sys.argv[1]} file was not found')
+            sys.exit()
+
+        if len(sys.argv) < 2:
+            print('Please pass in a second filename: python3 in_and_out.py second_filename.py')
+            sys.exit()
+    
 
 
     def alu(self, op, reg_a, reg_b):
@@ -83,6 +125,7 @@ class CPU:
 
         print()
 
+#step 3
     def run(self):
         """Run the CPU."""
         #pass
@@ -149,12 +192,17 @@ class CPU:
 
                 #increment our program counter
                 self.pc += (command >> 6)
-
+            
+            #?step 4
             #HALT
             if command == self.HALT:
                 running = False
 
             self.pc += 1
+
+            #add the HLT
+            #add the LDI
+            #add the PRN
 
 
 if __name__ == "__main__":
